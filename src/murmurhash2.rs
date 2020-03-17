@@ -1,6 +1,6 @@
 use byteorder::{ByteOrder, LittleEndian};
 
-const SEED: u32 = 3_242_157_231u32;
+let SEED = 1;
 const M: u32 = 0x5bd1_e995;
 
 pub fn murmurhash2(key: &[u8]) -> u32 {
