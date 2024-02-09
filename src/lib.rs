@@ -2,6 +2,7 @@ mod murmurhash2;
 mod murmurhash3;
 
 pub use self::murmurhash2::murmurhash2;
+pub use self::murmurhash2::Murmur2Digest;
 pub use self::murmurhash3::murmurhash3;
 
 #[cfg(test)]
