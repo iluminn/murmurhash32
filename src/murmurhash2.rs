@@ -6,85 +6,85 @@ pub fn murmurhash2(key: &[u8]) -> u32 {
 }
 
 pub struct Murmur2Digest {
-		hash: u32,
-		remainder: [u8; 3],
-		remainder_length: usize,
+    hash: u32,
+    remainder: [u8; 3],
+    remainder_length: usize,
 }
 
 impl Murmur2Digest {
-		pub fn digest(data: &[u8]) -> u32 {
-				let mut digest = Self::new(data.len() as u32);
-				digest.update(data);
-				digest.finalize()
-		}
+    pub fn digest(data: &[u8]) -> u32 {
+        let mut digest = Self::new(data.len() as u32);
+        digest.update(data);
+        digest.finalize()
+    }
 
-		pub fn new(length: u32) -> Self {
-				Self {
-						hash: SEED ^ length,
-						remainder: [0; 3],
-						remainder_length: 0,
-				}
-		}
+    pub fn new(length: u32) -> Self {
+        Self {
+            hash: SEED ^ length,
+            remainder: [0; 3],
+            remainder_length: 0,
+        }
+    }
 
-		#[inline]
-		pub fn update(&mut self, mut data: &[u8]) {
-				let combined_len = data.len() + self.remainder_length as usize;
+    #[inline]
+    pub fn update(&mut self, mut data: &[u8]) {
+        let combined_len = data.len() + self.remainder_length as usize;
 
-				if combined_len >= 4 {
-						let mut chunk = [0u8; 4];
-						let rl = self.remainder_length as usize;
-						chunk[..rl].copy_from_slice(&self.remainder[..rl]);
-						chunk[rl..].copy_from_slice(&data[..4 - rl]);
-						data = &data[4 - rl..];
-						self.update_chunk(chunk);
-				}
+        if combined_len >= 4 {
+            let mut chunk = [0u8; 4];
+            let rl = self.remainder_length as usize;
+            chunk[..rl].copy_from_slice(&self.remainder[..rl]);
+            chunk[rl..].copy_from_slice(&data[..4 - rl]);
+            data = &data[4 - rl..];
+            self.update_chunk(chunk);
+        }
 
-				while data.len() >= 4 {
-						let chunk = std::array::from_fn(|i| data[i]);
-						self.update_chunk(chunk);
-						data = &data[4..];
-				}
+        while data.len() >= 4 {
+            let chunk = std::array::from_fn(|i| data[i]);
+            self.update_chunk(chunk);
+            data = &data[4..];
+        }
 
-				let remlen = combined_len % 4;
+        let remlen = combined_len % 4;
 
-				self.remainder[..remlen].copy_from_slice(data);
-				self.remainder_length = remlen;
-		}
+        self.remainder[..remlen].copy_from_slice(data);
+        self.remainder_length = remlen;
+    }
 
-		#[inline]
-		fn update_chunk(&mut self, chunk: [u8; 4]) {
-				let mut k = u32::from_le_bytes(chunk);
-				k = k.wrapping_mul(M);
-				k ^= k >> 24;
-				k = k.wrapping_mul(M);
-				self.hash = self.hash.wrapping_mul(M);
-				self.hash ^= k;
-		}
+    #[inline]
+    fn update_chunk(&mut self, chunk: [u8; 4]) {
+        let mut k = u32::from_le_bytes(chunk);
+        k = k.wrapping_mul(M);
+        k ^= k >> 24;
+        k = k.wrapping_mul(M);
+        self.hash = self.hash.wrapping_mul(M);
+        self.hash ^= k;
+    }
 
-		pub fn finalize(mut self) -> u32 {
-				match self.remainder_length {
-						3 => {
-								self.hash ^= u32::from(self.remainder[2]) << 16;
-								self.hash ^= u32::from(self.remainder[1]) << 8;
-								self.hash ^= u32::from(self.remainder[0]);
-								self.hash = self.hash.wrapping_mul(M);
-						}
-						2 => {
-								self.hash ^= u32::from(self.remainder[1]) << 8;
-								self.hash ^= u32::from(self.remainder[0]);
-								self.hash = self.hash.wrapping_mul(M);
-						}
-						1 => {
-								self.hash ^= u32::from(self.remainder[0]);
-								self.hash = self.hash.wrapping_mul(M);
-						}
-						_ => {}
-				}
+    pub fn finalize(mut self) -> u32 {
+        match self.remainder_length {
+            3 => {
+                self.hash ^= u32::from(self.remainder[2]) << 16;
+                self.hash ^= u32::from(self.remainder[1]) << 8;
+                self.hash ^= u32::from(self.remainder[0]);
+                self.hash = self.hash.wrapping_mul(M);
+            }
+            2 => {
+                self.hash ^= u32::from(self.remainder[1]) << 8;
+                self.hash ^= u32::from(self.remainder[0]);
+                self.hash = self.hash.wrapping_mul(M);
+            }
+            1 => {
+                self.hash ^= u32::from(self.remainder[0]);
+                self.hash = self.hash.wrapping_mul(M);
+            }
+            _ => {}
+        }
 
-				self.hash ^= self.hash >> 13;
-				self.hash = self.hash.wrapping_mul(M);
-				self.hash ^ (self.hash >> 15)
-		}
+        self.hash ^= self.hash >> 13;
+        self.hash = self.hash.wrapping_mul(M);
+        self.hash ^ (self.hash >> 15)
+    }
 }
 
 #[cfg(test)]

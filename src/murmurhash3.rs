@@ -78,5 +78,4 @@ mod test {
         assert_eq!(murmurhash3(b"abcde"), 2_747_833_956);
         assert_eq!(murmurhash3(b"abcdefghijklmnop"), 2_078_305_053);
     }
-
 }
